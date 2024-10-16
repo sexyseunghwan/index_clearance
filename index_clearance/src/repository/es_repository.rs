@@ -1,5 +1,5 @@
 use crate::common::*;
-use crate::models::ClusterConfig::*;
+use crate::models::ElasticConfig::*;
 use crate::util_modules::io_utils::*;
 
 /* 
@@ -9,7 +9,7 @@ pub fn initialize_db_clients(es_info_path: &str) -> Result<Vec<EsRepositoryPub>,
 
     let mut elastic_conn_vec: Vec<EsRepositoryPub> = Vec::new();
     
-    let cluster_config: ClusterConfig = read_json_from_file::<ClusterConfig>(es_info_path)?;
+    let cluster_config: ElasticConfig = read_json_from_file::<ElasticConfig>(es_info_path)?;
     
     for config in &cluster_config.clusters {
         

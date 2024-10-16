@@ -31,6 +31,9 @@ async fn main() {
         }
     };
     
+    // Index clear 의 대상이 되는 인덱스들 정보
+    //let clear_index_info: Vec<>
+
     let mut handlers: Vec<MainHandler<IndexClearServicePub<EsRepositoryPub>>> = Vec::new();
     
     for cluster in es_infos_vec {
@@ -40,5 +43,5 @@ async fn main() {
     }
     
     
-
+    
 }
