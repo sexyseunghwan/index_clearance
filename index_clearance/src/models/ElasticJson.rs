@@ -1,7 +1,5 @@
 use crate::common::*;
 
-use crate::models::IndexConfig::*;
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ElasticJson {
     pub cluster_name: String,

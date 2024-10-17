@@ -28,17 +28,10 @@ pub fn initialize_db_clients(es_info_path: &str) -> Result<Vec<EsRepositoryPub>,
 
 #[async_trait]
 pub trait EsRepository {
-    async fn get_indices_info(&self) -> Result<String, anyhow::Error>;
-    async fn get_health_info(&self) -> Result<Value, anyhow::Error>;
-    async fn get_pendging_tasks(&self) -> Result<Value, anyhow::Error>;
-    async fn get_node_conn_check(&self) -> Vec<(String, bool)>;
-    async fn get_node_stats(&self) -> Result<Value, anyhow::Error>;
-    async fn post_doc(&self, index_name: &str, document: Value) -> Result<(), anyhow::Error>;
     async fn delete_index(&self, index_name: &str) -> Result<(), anyhow::Error>;
     async fn get_index_belong_pattern(&self, index_pattern: &str) -> Result<Value, anyhow::Error>;
 
     fn get_cluster_name(&self) -> String;
-    fn get_cluster_all_host_infos(&self) -> String;
 }
 
 #[derive(Debug, Getters, Clone)]
@@ -118,190 +111,6 @@ impl EsRepositoryPub {
 #[async_trait]
 impl EsRepository for EsRepositoryPub {
     
-    /*
-        Elasticsearch 클러스터 내부에 존재하는 인덱스들의 정보를 가져오는 함수
-    */
-    async fn get_indices_info(&self) -> Result<String, anyhow::Error> {
-        
-        let response = self.execute_on_any_node(|es_client| async move {
-            
-            let response = es_client
-                .es_conn
-                .cat()
-                .indices(CatIndicesParts::None)
-                .h(&["health", "status", "index"])
-                .send()
-                .await?;
-
-            Ok(response)
-        })
-        .await?;
-
-        if response.status_code().is_success() {
-            let response_body: String = response.text().await?;
-            Ok(response_body)
-        } else {
-            let error_message = format!("[Elasticsearch Error][get_indices_info()] Failed to GET document: Status Code: {}", response.status_code());
-            Err(anyhow!(error_message))
-        } 
-    }
-
-
-    /*
-        Elasticsearch 클러스터의 헬스체크를 해주는 함수.
-    */
-    async fn get_health_info(&self) -> Result<Value, anyhow::Error> {
-        
-        let response = self.execute_on_any_node(|es_client| async move { 
-
-            // _cluster/health 요청
-            let response = es_client
-                .es_conn
-                .cluster()
-                .health(ClusterHealthParts::None)  
-                .send()
-                .await?;
-
-            Ok(response)
-        })
-        .await?;
-        
-        if response.status_code().is_success() {
-            
-            let resp: Value = response.json().await?;
-            Ok(resp)
-
-        } else {
-            let error_message = format!("[Elasticsearch Error][get_health_info()] Failed to GET document: Status Code: {}", response.status_code());
-            Err(anyhow!(error_message))
-        }    
-
-    }
-
-    
-    /*
-        Elasticsearch 의 pending task(중단작업) 가 있는지 확인해주는 함수
-    */
-    async fn get_pendging_tasks(&self) -> Result<Value, anyhow::Error> {
-
-        let response = self.execute_on_any_node(|es_client| async move { 
-
-            // _cluster/pending_tasks 요청
-            let response = es_client
-                .es_conn
-                .cluster()
-                .pending_tasks()  
-                .send()
-                .await?;
-
-            Ok(response)
-        })
-        .await?;
-        
-        if response.status_code().is_success() {
-            
-            let resp: Value = response.json().await?;
-            Ok(resp)
-
-        } else {
-            let error_message = format!("[Elasticsearch Error][get_pendging_tasks()] Failed to GET document: Status Code: {}", response.status_code());
-            Err(anyhow!(error_message))
-        }  
-        
-    }
-
-    
-    /*
-        Elasticsearch 각 노드들이 현재 문제 없이 통신이 되는지 체크해주는 함수.
-    */
-    async fn get_node_conn_check(&self) -> Vec<(String, bool)> {
-
-        let futures = self.es_clients.iter().map(|es_obj| {
-
-            let es_host = es_obj.host.clone();
-            let es_pool = es_obj.es_conn.clone();
-
-            async move {
-                
-                let response = es_pool.ping().send().await;
-                let is_success = match response {
-                    Ok(res) if res.status_code().is_success() => true,
-                    _ => false
-                };
-                
-                (es_host, is_success)
-            }
-        });    
-        
-        
-        join_all(futures).await
-    }
-
-    /*
-        클러스터 각 노드의 metric value 를 반환해주는 함수.    
-    */
-    async fn get_node_stats(&self) -> Result<Value, anyhow::Error> {
-        
-        let response = self.execute_on_any_node(|es_client| async move { 
-
-            // _nodes/stats 요청
-            let response = es_client
-                .es_conn
-                .nodes()
-                .stats(NodesStatsParts::None)  
-                .send()
-                .await?;
-
-            Ok(response)
-        })
-        .await?;
-        
-        if response.status_code().is_success() {
-            
-            let resp: Value = response.json().await?;
-            Ok(resp)
-
-        } else {
-            let error_message = format!("[Elasticsearch Error][get_node_stats()] Failed to GET document: Status Code: {}", response.status_code());
-            Err(anyhow!(error_message))
-        } 
-    }
-    
-
-    /*
-        특정 인덱스에 데이터를 insert 해주는 함수.
-    */
-    async fn post_doc(&self, index_name: &str, document: Value) -> Result<(), anyhow::Error> {
-
-        // 클로저 내에서 사용할 복사본을 생성
-        let document_clone = document.clone();
-        
-        let response = self.execute_on_any_node(|es_client| {
-            // 클로저 내부에서 클론한 값 사용
-            let value = document_clone.clone(); 
-    
-            async move { 
-                let response = es_client
-                    .es_conn
-                    .index(IndexParts::Index(index_name))
-                    .body(value)
-                    .send()
-                    .await?;
-    
-                Ok(response)
-            }
-        })
-        .await?;
-        
-        if response.status_code().is_success() {
-            Ok(())
-        } else {
-            let error_message = format!("[Elasticsearch Error][post_doc()] Failed to index document: Status Code: {}", response.status_code());
-            Err(anyhow!(error_message))
-        }
-    }
-    
-
 
     /*
         특정 인덱스 자체를 삭제해주는 함수.
@@ -366,23 +175,6 @@ impl EsRepository for EsRepositoryPub {
     */
     fn get_cluster_name(&self) -> String {
         self.cluster_name().to_string()
-    }
-
-    
-    /*
-        Cluster 내의 모든 호스트들을 반환해주는 함수.
-    */
-    fn get_cluster_all_host_infos(&self) -> String {
-
-        let mut hosts: String = String::from("");
-
-        self.es_clients
-            .iter() 
-            .for_each(|es_client| {
-                hosts.push_str(&format!("{}\n", es_client.host));
-            });
-
-        hosts
     }
     
 }

@@ -1,45 +1,23 @@
 use crate::common::*;
 
-use crate::util_modules::io_utils::*;
-
 use crate::service::index_clear_service::*;
 
-use crate::models::ClusterConfig::*;
-use crate::models::ClusterJson::*;
-//use crate::models::ClearList::*;
+
 
 pub struct MainHandler<I: IndexClearService> {
-    index_clear_service: I,
-    clear_index_info: ClusterJson
+    index_clear_service: I
 }
 
 impl<I: IndexClearService> MainHandler<I> {
     
     pub fn new(index_clear_service: I) -> Self {
-        
-        println!("??");
-
-        //let clear_index_infos: Vec<ClusterIndex> = Vec::new();
-        let clear_index_info: ClusterConfig = match read_json_from_file::<ClusterConfig>("./datas/index_list.json") {
-            Ok(clear_index_info) => clear_index_info,
-            Err(e) => {
-                error!("{:?}", e);
-                panic!("{:?}", e)
-            }
-        };
-
-        println!("{:?}", clear_index_info);
-
-        Self { index_clear_service, clear_index_info }
+        Self { index_clear_service }
     }
     
-    
-    /*
-
-    */
     pub async fn task_set(&self) -> Result<(), anyhow::Error> {
 
-                
+        // 인덱스 삭제 함수.        
+        self.index_clear_service.delete_index_from_rule().await?;
 
         Ok(())
     }

@@ -2,15 +2,11 @@ pub use std::{
     io::Write, 
     io::BufReader, 
     fs::File,
-    sync::Arc,
     future::Future
 };
 
 
-pub use tokio::{
-    time::sleep, 
-    time::Duration
-};
+pub use tokio::time::Duration;
 
 pub use log::{info, error};
 
@@ -38,9 +34,6 @@ pub use elasticsearch::{
     http::Url,
     http::response::Response,
     cat::CatIndicesParts,
-    cluster::ClusterHealthParts,
-    nodes::NodesStatsParts,
-    IndexParts,
     indices::IndicesDeleteParts
 };
 
@@ -58,8 +51,6 @@ pub use derive_new::new;
 pub use futures::future::join_all;
 
 pub use async_trait::async_trait;
-
-pub use once_cell::sync::Lazy;
 
 pub use chrono::{
     NaiveDate,

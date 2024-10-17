@@ -31,17 +31,35 @@ async fn main() {
         }
     };
     
-    // Index clear 의 대상이 되는 인덱스들 정보
-    //let clear_index_info: Vec<>
-
+    // 의존주입 핸들러
     let mut handlers: Vec<MainHandler<IndexClearServicePub<EsRepositoryPub>>> = Vec::new();
     
     for cluster in es_infos_vec {
         let metirc_service = IndexClearServicePub::new(cluster);
-        let maind_handler = MainHandler::new(metirc_service);
-        handlers.push(maind_handler);
+        let main_handler = MainHandler::new(metirc_service);
+        handlers.push(main_handler);
     }
     
+
+    // Handler 를 통한 Async 작업
+    let futures = handlers.iter().map(|handler| {
+        async move {                
+            handler.task_set().await
+        }
+    });
     
+    // 작업결과
+    let results = join_all(futures).await;
+    
+    for result in results {
+        match result {
+            Ok(_) => {
+                info!("Index Schedule Program processed successfully");
+            }
+            Err(e) => {
+                error!("[Error][main()] Error processing : {:?}", e);
+            }
+        }
+    }
     
 }
