@@ -1,3 +1,10 @@
+/*
+Author      : Seunghwan Shin 
+Create date : 2024-10-17 
+Description : Elasticsearch 특정 인덱스를 삭제해주는 함수.
+    
+History     : 2024-10-17 Seunghwan Shin       # first create
+*/ 
 
 mod common;
 use common::*;

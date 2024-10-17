@@ -13,7 +13,6 @@ pub trait IndexClearService {
     async fn delete_index_from_rule(&self) -> Result<(), anyhow::Error>;
 }
 
-
 #[derive(Clone, Debug)]
 pub struct IndexClearServicePub<R: EsRepository> {
     elastic_obj: R,
@@ -66,6 +65,7 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
             if let Some(index_obj) = res.as_array() {
                 
                 for index in index_obj {
+                    
                     let index_name = index["index"].as_str()
                         .ok_or_else(|| anyhow!("[Parsing Error][delete_cluster_index()] index['index'] variable not found."))?;
                     
@@ -84,19 +84,33 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
                     
                     let perserve_days_ago = cur_utc_time - chrono::Duration::days(preserve_term as i64);
                     
+                    
                     if parsed_date < perserve_days_ago {
+                        
+                        /*
+                            **** [[[[ Warning ]]]] ****
+                            Index 이름에 log 라는 단어가 없을시에는 제거 대상에 포함되지 않도록 한다.
+                            ***검색인덱스를 지울시에 치명적인 장애발생 가능함.***
+                        */
+                        if ! index_name.contains("log") {
+                            info!("The delete target index name MUST CONTAIN the word 'log'. : {}", index_name);
+                            continue;
+                        }
+                        
                         delete_index_list.push(index_name.to_string());
                     }
                 }
             }
             
-            // 날짜가 5일이 지난 인덱스는 제거.
+            // 실제 삭제 알고리즘.
             for delete_index in delete_index_list {
+                
                 self.elastic_obj.delete_index(&delete_index).await?;
-                info!("{} index removed", delete_index);  
+                info!("{} index removed", delete_index);
+                  
             } 
         }
-
+        
         Ok(())
     }
 }
