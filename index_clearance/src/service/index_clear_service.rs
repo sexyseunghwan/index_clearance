@@ -84,8 +84,7 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
                     
                     let perserve_days_ago = cur_utc_time - chrono::Duration::days(preserve_term as i64);
                     
-                    
-                    if parsed_date < perserve_days_ago {
+                    if parsed_date <= perserve_days_ago {
                         
                         /*
                             **** [[[[ Warning ]]]] ****
