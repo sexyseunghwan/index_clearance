@@ -102,12 +102,12 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
                 }
             }
             
-            // 실제 삭제 알고리즘.
+            // 실제 인덱스 삭제 알고리즘.
             for delete_index in delete_index_list {
                 
                 self.elastic_obj.delete_index(&delete_index).await?;
                 info!("{} index removed", delete_index);
-                  
+                      
             } 
         }
         
