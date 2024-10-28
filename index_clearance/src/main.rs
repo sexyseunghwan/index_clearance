@@ -4,9 +4,13 @@ Create date : 2024-10-21
 Description : Elasticsearch 특정 인덱스를 삭제해주는 함수.
     
 History     : 2024-10-21 Seunghwan Shin       # first create
+              2024-10-28 Seunghwan Shin       # 1) elastic 에 security 적용되지 않는 경우라도 프로그램 동작하도록 변경
+                                                2) 
 */ 
 
 mod common;
+use core::panic;
+
 use common::*;
 
 mod models;
@@ -42,12 +46,19 @@ async fn main() {
     let mut handlers: Vec<MainHandler<IndexClearServicePub<EsRepositoryPub>>> = Vec::new();
     
     for cluster in es_infos_vec {
-        let metirc_service = IndexClearServicePub::new(cluster);
+        
+        let metirc_service = match IndexClearServicePub::new(cluster) {
+            Ok(metirc_service) => metirc_service,
+            Err(e) => {
+                error!("{:?}", e);
+                continue
+            }
+        };
+
         let main_handler = MainHandler::new(metirc_service);
         handlers.push(main_handler);
     }
     
-
     // Handler 를 통한 Async 작업
     let futures = handlers.iter().map(|handler| {
         async move {                

@@ -633,6 +633,7 @@ dependencies = [
  "log",
  "once_cell",
  "rand",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",

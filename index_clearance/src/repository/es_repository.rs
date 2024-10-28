@@ -16,8 +16,8 @@ pub fn initialize_db_clients(es_info_path: &str) -> Result<Vec<EsRepositoryPub>,
         let es_helper = EsRepositoryPub::new(
             &config.cluster_name,
             config.hosts.clone(), 
-            &config.es_id, 
-            &config.es_pw)?;
+            &config.es_id.as_deref().unwrap_or(""), 
+            &config.es_pw.as_deref().unwrap_or(""))?;
         
         elastic_conn_vec.push(es_helper);
     }
@@ -56,9 +56,13 @@ impl EsRepositoryPub {
         let mut es_clients: Vec<EsClient> = Vec::new();
         
         for url in hosts {
-    
-            let parse_url = format!("http://{}:{}@{}", es_id, es_pw, url);
             
+            let parse_url = if es_id.is_empty() || es_pw.is_empty() {
+                format!("http://{}", url)
+            } else {
+                format!("http://{}:{}@{}", es_id, es_pw, url)
+            };
+
             let es_url = Url::parse(&parse_url)?;
             let conn_pool = SingleNodeConnectionPool::new(es_url);
             let transport = TransportBuilder::new(conn_pool)
@@ -100,7 +104,7 @@ impl EsRepositoryPub {
         }
         
         // 모든 노드에서 실패했을 경우 에러 반환
-        Err(anyhow::anyhow!(
+        Err(anyhow!(
             "All Elasticsearch nodes failed. Last error: {:?}",
             last_error
         ))

@@ -21,7 +21,7 @@ pub struct IndexClearServicePub<R: EsRepository> {
 
 impl<R: EsRepository> IndexClearServicePub<R> {
     
-    pub fn new(elastic_obj: R) -> Self {
+    pub fn new(elastic_obj: R) -> Result<Self, anyhow::Error> {
         
         let cluster_name = elastic_obj.get_cluster_name();
         
@@ -36,9 +36,11 @@ impl<R: EsRepository> IndexClearServicePub<R> {
         let clear_index_info = cluster_config.clusters
             .into_iter()
             .find(|cluster| cluster.cluster_name == cluster_name)
-            .expect("No matching cluster found for the given name.");
-
-        Self { elastic_obj, clear_index_info }
+            .ok_or_else(|| {
+                anyhow!("No matching cluster found for the given name. : {}", cluster_name)
+            })?;
+        
+        Ok(Self { elastic_obj, clear_index_info })
     } 
 }
 
@@ -58,30 +60,38 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
             let index_pattern = index_config.index_pattern(); // 인덱스 패턴.
             let preserve_term = index_config.preserve_term; // 보존기한.
             
-            
             // 인덱스 패턴에 해당되는 모든 인덱스들을 가져온다.
             let res = self.elastic_obj.get_index_belong_pattern(index_pattern).await?;
-            
+            let regex = Regex::new(r"(\d{4}[-_]?\d{2}[-_]?\d{2})")?;
+
             if let Some(index_obj) = res.as_array() {
                 
                 for index in index_obj {
                     
                     let index_name = index["index"].as_str()
                         .ok_or_else(|| anyhow!("[Parsing Error][delete_cluster_index()] index['index'] variable not found."))?;
-                    
-                    let word_split: Vec<&str> = index_name.split('_').collect();
-                    let word_split_len = word_split.len();
-                    let date = word_split.get(word_split_len - 1)
-                        .ok_or_else(|| anyhow!("[Parsing Error][delete_cluster_index()] word_split.get({}) variable not found.", word_split_len))?;
-                    
-                    let parsed_date = match NaiveDate::parse_from_str(date, "%Y%m%d") {
-                        Ok(parsed_date) => parsed_date,
-                        Err(e) => {
-                            error!("[Parsing Error][delete_cluster_index()] An error occurred while converting 'parsed_date' data. // date: {:?}, {:?}", date ,e);
+
+                    let date_format = match regex.find(index_name).map(|mat| mat.as_str().replace("_", "-")) {
+                        Some(date_format) => date_format,
+                        None => {
+                            error!("[Parsing Error][delete_cluster_index()] Error parsing variable 'date_format' into regular expression.");
                             continue
                         }
                     };
                     
+                    let parsed_date = match NaiveDate::parse_from_str(&date_format, "%Y-%m-%d") {
+                        Ok(parsed_date) => parsed_date,
+                        Err(_e) => {
+                            match NaiveDate::parse_from_str(&date_format, "%Y%m%d") {
+                                Ok(parsed_date) => parsed_date,
+                                Err(e) => {
+                                    error!("[Parsing Error][delete_cluster_index()] An error occurred while converting 'parsed_date' data. // date_format: {:?}, {:?}", date_format ,e);
+                                    continue
+                                }
+                            }
+                        }
+                    };
+                
                     let perserve_days_ago = cur_utc_time - chrono::Duration::days(preserve_term as i64);
                     
                     if parsed_date <= perserve_days_ago {
@@ -95,7 +105,7 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
                             info!("The delete target index name MUST CONTAIN the word 'log'. : {}", index_name);
                             continue;
                         }
-                        
+
                         delete_index_list.push(index_name.to_string());
                     }
                 }
@@ -106,7 +116,7 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
                 
                 self.elastic_obj.delete_index(&delete_index).await?;
                 info!("{} index removed", delete_index);
-                      
+                                              
             } 
         }
         

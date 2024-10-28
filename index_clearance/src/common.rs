@@ -58,3 +58,5 @@ pub use chrono::{
     DateTime,
     Utc
 };
+
+pub use regex::Regex;

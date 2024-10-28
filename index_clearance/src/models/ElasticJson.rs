@@ -4,6 +4,6 @@ use crate::common::*;
 pub struct ElasticJson {
     pub cluster_name: String,
     pub hosts: Vec<String>,
-    pub es_id: String,
-    pub es_pw: String
+    pub es_id: Option<String>,
+    pub es_pw: Option<String>
 }
