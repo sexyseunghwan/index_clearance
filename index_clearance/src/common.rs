@@ -60,3 +60,25 @@ pub use chrono::{
 };
 
 pub use regex::Regex;
+
+pub use lettre::{
+    Message, 
+    SmtpTransport, 
+    Transport,
+    transport::smtp::authentication::Credentials
+};
+use lettre::{Message, AsyncSmtpTransport, Tokio1Transport, Transport};
+
+pub use once_cell::sync::Lazy as once_lazy;
+
+// pub use lettre::{Message, AsyncTransport, AsyncSmtpTransport, Tokio1Transport, transport::smtp::authentication::{Credentials, Mechanism}};
+// pub use lettre::message::Mailbox;
+
+
+// pub use async_smtp::{
+//     SmtpClient, 
+//     authentication::{Credentials, Mechanism},
+//     Envelope, 
+//     SendableEmail, 
+//     extension::ClientId,  // ClientId 사용 예시
+// };
