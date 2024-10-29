@@ -65,9 +65,9 @@ pub use lettre::{
     Message, 
     SmtpTransport, 
     Transport,
-    transport::smtp::authentication::Credentials
+    transport::smtp::authentication::Credentials,
+    AsyncSmtpTransport
 };
-use lettre::{Message, AsyncSmtpTransport, Tokio1Transport, Transport};
 
 pub use once_cell::sync::Lazy as once_lazy;
 

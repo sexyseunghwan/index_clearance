@@ -16,6 +16,7 @@ use common::*;
 mod models;
 
 mod util_modules;
+use lettre::AsyncTransport;
 use util_modules::logger_utils::*;
 
 mod repository;
@@ -26,6 +27,7 @@ use crate::handler::main_handler::*;
 
 mod service;
 use service::index_clear_service::*;
+//lettre = "0.11.10"
 
 
 #[tokio::main]
@@ -42,15 +44,21 @@ async fn main() {
     
     let creds = Credentials::new("ssh9308@gmail.com".to_string(), "myep aazw gxjo uuxc".to_string());
 
-    let mailer = SmtpTransport::relay("smtp.gmail.com").unwrap()    
+    // let mailer = SmtpTransport::relay("smtp.gmail.com").unwrap()    
+    //     .credentials(creds)
+    //     .build();
+
+    let mailer = AsyncSmtpTransport::<lettre::Tokio1Executor>::relay("smtp.gmail.com").unwrap()
         .credentials(creds)
         .build();
 
+    let res  = mailer.send(email).await.unwrap();
+    
     // Send the email
-    match mailer.send(&email) {
-        Ok(_) => println!("Email sent successfully!"),
-        Err(e) => eprintln!("Could not send email: {:?}", e),
-    }
+    // match mailer.send(email) {
+    //     Ok(_) => println!("Email sent successfully!"),
+    //     Err(e) => eprintln!("Could not send email: {:?}", e),
+    // }
     
     // Elasticsearch DB 커넥션 정보
     // let es_infos_vec: Vec<EsRepositoryPub> = match initialize_db_clients("./datas/server_info.json") {
