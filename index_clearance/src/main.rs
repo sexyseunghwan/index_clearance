@@ -21,33 +21,62 @@ use util_modules::logger_utils::*;
 
 mod repository;
 use crate::repository::es_repository::*;
+use crate::repository::smtp_repository::*;
 
 mod handler;
 use crate::handler::main_handler::*;
 
 mod service;
 use service::index_clear_service::*;
-//lettre = "0.11.10"
 
+use models::ReceiverEmailList::*;
 
+use lettre::message::header;
 #[tokio::main]
 async fn main() {
 
     set_global_logger();
     info!("Index Schedule Program Start");
+    
+    
+    // let mut file = std::fs::File::open("./html/view.html").expect("Failed to open file");
+    // let mut html_content = String::new();
+    // file.read_to_string(&mut html_content).expect("Failed to read file");
 
+    let index_name = "my_index";  // 동적으로 변경될 인덱스 이름
+    let html_template = std::fs::read_to_string("./html/view.html").unwrap();  // HTML 파일 읽기
+    let html_content = html_template.replace("{index_name}", index_name);
+
+    // for elem in receiver_email_list.receivers {
+    //     println!("{:?}", elem);
+    // }
+    
+    //let receiver_email_list = ReceiverEmailList::new().unwrap();
+    
+    // let email = Message::builder()
+    //     .from("ssh9308@gmail.com".parse().unwrap())
+    //     .to("ssh9308@mediawill.com".parse().unwrap())
+    //     .subject("Rust SMTP email test!")
+    //     .body(String::from("This is a test email sent from Rust using lettre and Gmail SMTP!"))
+    //     .unwrap();
+    
     let email = Message::builder()
         .from("ssh9308@gmail.com".parse().unwrap())
         .to("ssh9308@mediawill.com".parse().unwrap())
         .subject("Rust SMTP email test!")
-        .body(String::from("This is a test email sent from Rust using lettre and Gmail SMTP!")).unwrap();
+        .multipart(
+            MultiPart::alternative()  // 이 부분이 HTML과 일반 텍스트를 모두 포함하도록 설정
+                .singlepart(
+                    SinglePart::plain(String::from("This is a fallback text email body for email clients that do not support HTML."))
+                )
+                .singlepart(
+                    SinglePart::html(html_content)
+                )
+        ).unwrap();
+    
     
     let creds = Credentials::new("ssh9308@gmail.com".to_string(), "myep aazw gxjo uuxc".to_string());
-
-    // let mailer = SmtpTransport::relay("smtp.gmail.com").unwrap()    
-    //     .credentials(creds)
-    //     .build();
-
+    
     let mailer = AsyncSmtpTransport::<lettre::Tokio1Executor>::relay("smtp.gmail.com").unwrap()
         .credentials(creds)
         .build();

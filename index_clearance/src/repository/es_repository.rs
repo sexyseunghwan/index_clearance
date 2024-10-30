@@ -34,6 +34,7 @@ pub trait EsRepository {
     fn get_cluster_name(&self) -> String;
 }
 
+
 #[derive(Debug, Getters, Clone)]
 #[getset(get = "pub")]
 pub struct EsRepositoryPub {

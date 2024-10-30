@@ -1,10 +1,9 @@
 pub use std::{ 
-    io::Write, 
+    io::{ Write, Read }, 
     io::BufReader, 
     fs::File,
     future::Future
 };
-
 
 pub use tokio::time::Duration;
 
@@ -48,8 +47,6 @@ pub use anyhow::{Result, anyhow};
 pub use getset::Getters;
 pub use derive_new::new;
 
-pub use futures::future::join_all;
-
 pub use async_trait::async_trait;
 
 pub use chrono::{
@@ -66,19 +63,17 @@ pub use lettre::{
     SmtpTransport, 
     Transport,
     transport::smtp::authentication::Credentials,
-    AsyncSmtpTransport
+    AsyncSmtpTransport,
+    AsyncTransport,
+    message::{  
+        header, 
+        MultiPart, 
+        SinglePart 
+    }
 };
 
-pub use once_cell::sync::Lazy as once_lazy;
-
-// pub use lettre::{Message, AsyncTransport, AsyncSmtpTransport, Tokio1Transport, transport::smtp::authentication::{Credentials, Mechanism}};
-// pub use lettre::message::Mailbox;
-
-
-// pub use async_smtp::{
-//     SmtpClient, 
-//     authentication::{Credentials, Mechanism},
-//     Envelope, 
-//     SendableEmail, 
-//     extension::ClientId,  // ClientId 사용 예시
-// };
+pub use futures::future::join_all;
+pub use futures::stream::{
+    StreamExt, 
+    TryStreamExt
+};

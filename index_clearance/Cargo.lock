@@ -833,7 +833,6 @@ dependencies = [
  "getset",
  "lettre",
  "log",
- "once_cell",
  "rand",
  "regex",
  "reqwest",
