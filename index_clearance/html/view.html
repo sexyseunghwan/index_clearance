@@ -3,53 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Index Deletion Notification</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background-color: #ffffff;
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            padding-bottom: 20px;
-        }
-        .content {
-            font-size: 16px;
-            color: #333;
-        }
-        .footer {
-            font-size: 12px;
-            text-align: center;
-            margin-top: 20px;
-            color: #999;
-        }
-        .logo {
-            width: 100px;
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <img src="https://image.alba.kr/e/common/2024/Header_bi1.png" alt="Company Logo" class="logo">
+<body style="font-family: 'Arial', sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
+    <div style="background-color: #ffffff; width: 100%; max-width: 600px; margin: 0 auto; padding: 30px; box-shadow: 0 0 10px rgba(0,0,0,0.1);border-radius:8px;">
+        <div style="text-align: center; padding-bottom: 20px;">
+            <img src="https://image.alba.kr/e/common/2024/Header_bi1.png" alt="Company Logo" style="width: 100px;">;
         </div>
-        <div class="content">
-            <h1>Index Deletion Notification</h1>
-            <p>Hello,</p>
-            <p>We would like to inform you that the Elasticsearch index {index_name} has been successfully deleted.</p>
-            <p>If you did not initiate this request or if you have any questions, please contact our support team immediately.</p>
+        <div style="font-size: 16px; color: #333;">
+            <h1>[{cluster_name}] Index Deletion Notification</h1>
+            <p>Log index removed from the elasticsearch cluster is as follows.</p>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th style="background-color: #f2f2f2; border: 1px solid #ddd; padding: 8px; text-align: left;">Index Name</th>
+                    <th style="background-color: #f2f2f2; border: 1px solid #ddd; padding: 8px; text-align: left;">Deletion Date</th>
+                    <th style="background-color: #f2f2f2; border: 1px solid #ddd; padding: 8px; text-align: left;">Status</th>
+                </tr>
+                {index_list}
+            </table>
         </div>
-        <div class="footer">
-            <p>Thank you,<br>Your Company Name</p>
+        <div style="font-size: 12px; text-align: center; margin-top: 20px; color: #999;">
+            <p>(주)미디어윌네트웍스</p>
         </div>
     </div>
 </body>

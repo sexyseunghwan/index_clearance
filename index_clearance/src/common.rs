@@ -60,13 +60,11 @@ pub use regex::Regex;
 
 pub use lettre::{
     Message, 
-    SmtpTransport, 
     Transport,
     transport::smtp::authentication::Credentials,
     AsyncSmtpTransport,
     AsyncTransport,
     message::{  
-        header, 
         MultiPart, 
         SinglePart 
     }
@@ -77,3 +75,6 @@ pub use futures::stream::{
     StreamExt, 
     TryStreamExt
 };
+
+
+pub use chrono_tz::Asia::Seoul;

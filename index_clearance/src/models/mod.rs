@@ -6,3 +6,4 @@ pub mod ClusterIndexConfig;
 pub mod SmtpJson;
 pub mod ReceiverEmail;
 pub mod ReceiverEmailList;
+pub mod EmailStruct;

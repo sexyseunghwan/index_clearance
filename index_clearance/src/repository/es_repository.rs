@@ -2,9 +2,8 @@ use crate::common::*;
 use crate::models::ElasticConfig::*;
 use crate::util_modules::io_utils::*;
 
-/* 
-    Elasticsearch DB 초기화
-*/
+
+#[doc = "Elasticsearch DB 초기화"]
 pub fn initialize_db_clients(es_info_path: &str) -> Result<Vec<EsRepositoryPub>, anyhow::Error> {
 
     let mut elastic_conn_vec: Vec<EsRepositoryPub> = Vec::new();
@@ -79,7 +78,8 @@ impl EsRepositoryPub {
     }
     
     
-    // Common logic: common node failure handling and node selection
+
+    #[doc = "Common logic: common node failure handling and node selection"]
     async fn execute_on_any_node<F, Fut>(&self, operation: F) -> Result<Response, anyhow::Error>
     where
         F: Fn(EsClient) -> Fut + Send + Sync,
@@ -87,14 +87,14 @@ impl EsRepositoryPub {
     {
         let mut last_error = None;
     
-        // StdRng를 사용하여 Send 트레잇 문제 해결
-        let mut rng = StdRng::from_entropy(); // 랜덤 시드로 생성
+        /* 랜덤 시드로 생성 */ 
+        let mut rng = StdRng::from_entropy(); 
         
-        // 클라이언트 목록을 셔플
+        /* 클라이언트 목록을 셔플 */ 
         let mut shuffled_clients: Vec<EsClient> = self.es_clients.clone();
-        shuffled_clients.shuffle(&mut rng); // StdRng를 사용하여 셔플
+        shuffled_clients.shuffle(&mut rng); /* StdRng를 사용하여 셔플 */ 
         
-        // 셔플된 클라이언트들에 대해 순차적으로 operation 수행
+        /* 셔플된 클라이언트들에 대해 순차적으로 operation 수행 */ 
         for es_client in shuffled_clients {
             match operation(es_client).await {
                 Ok(response) => return Ok(response),
@@ -104,7 +104,7 @@ impl EsRepositoryPub {
             }
         }
         
-        // 모든 노드에서 실패했을 경우 에러 반환
+        /* 모든 노드에서 실패했을 경우 에러 반환 */ 
         Err(anyhow!(
             "All Elasticsearch nodes failed. Last error: {:?}",
             last_error
@@ -134,7 +134,7 @@ impl EsRepository for EsRepositoryPub {
             Ok(response)
         })
         .await?;
-
+        
         if response.status_code().is_success() {
             Ok(())
         } else {

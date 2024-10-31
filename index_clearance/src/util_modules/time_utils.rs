@@ -2,24 +2,30 @@ use crate::common::*;
 
 
 
-/*  
-    Functions that return the current UTC time -> NaiveDate
-*/
+#[doc = "Functions that return the current UTC time -> NaiveDate"]
 pub fn get_current_utc_naivedate() -> NaiveDate {
     
     let utc_now: DateTime<Utc> = Utc::now();
     utc_now.date_naive()
 }
 
-/*
-    Functions that return the current UTC time -> NaiveDatetime
-*/
+
+#[doc = "Functions that return the current UTC time -> NaiveDatetime"]
 pub fn get_currnet_utc_naivedatetime() -> NaiveDateTime {
 
     let utc_now: DateTime<Utc> = Utc::now();
     utc_now.naive_local()
 }
 
+
+#[doc = "Functions that make the current date (Korean time) a 'NaiveDateTime' data type"]
+pub fn get_current_kor_naive_datetime() -> NaiveDateTime {
+
+    let utc_now: DateTime<Utc> = Utc::now();
+    let kst_time: DateTime<chrono_tz::Tz> = utc_now.with_timezone(&Seoul);
+
+    kst_time.naive_local()
+}
 
 /*  
     Function that returns the current UTC time as a string
