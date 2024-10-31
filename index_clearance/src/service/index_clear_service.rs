@@ -80,12 +80,10 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
                     let index_name = index["index"].as_str()
                         .ok_or_else(|| anyhow!("[Parsing Error][delete_cluster_index()] index['index'] variable not found."))?;
 
-                    info!("index_name= {:?}", index_name);
-
                     let date_format = match regex.find(index_name).map(|mat| mat.as_str().replace("_", "-")) {
                         Some(date_format) => date_format,
                         None => {
-                            error!("[Parsing Error][delete_cluster_index()] Error parsing variable 'date_format' into regular expression.");
+                            error!("[Parsing Error][delete_cluster_index()] Error parsing variable 'date_format' into regular expression. : {}", index_name);
                             continue
                         }
                     };
