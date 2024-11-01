@@ -37,9 +37,8 @@ pub fn get_current_kor_naive_datetime() -> NaiveDateTime {
     
 // }
 
-/*
-    Function that converts the date data 'naivedate' format to the string format
-*/
+
+#[doc = "Function that converts the date data 'naivedate' format to the string format"]
 pub fn get_str_from_naivedatetime(naive_date: NaiveDateTime, fmt: &str) -> Result<String, anyhow::Error> {
     
     let result_date = naive_date.format(fmt).to_string();
@@ -47,9 +46,7 @@ pub fn get_str_from_naivedatetime(naive_date: NaiveDateTime, fmt: &str) -> Resul
 }
 
 
-/*
-    Function that converts the date data 'naivedate' format to the string format
-*/
+#[doc = "Function that converts the date data 'naivedate' format to the string format"]
 pub fn get_str_from_naivedate(naive_date: NaiveDate, fmt: &str) -> Result<String, anyhow::Error> {
     
     let result_date = naive_date.format(fmt).to_string();
@@ -57,9 +54,7 @@ pub fn get_str_from_naivedate(naive_date: NaiveDate, fmt: &str) -> Result<String
 }
 
 
-/*
-    Function that converts the date data 'naivedatetime' format to String format
-*/
+#[doc = "Function that converts the date data 'naivedatetime' format to String format"]
 pub fn get_str_from_naive_datetime(naive_datetime: NaiveDateTime, fmt: &str) -> Result<String, anyhow::Error> {
     
     let result_date = naive_datetime.format(fmt).to_string();
@@ -67,9 +62,8 @@ pub fn get_str_from_naive_datetime(naive_datetime: NaiveDateTime, fmt: &str) -> 
 }
 
 
-/*
-    Function to change 'string' data format to 'NaiveDateTime' format
-*/
+
+#[doc = "Function to change 'string' data format to 'NaiveDateTime' format"]
 pub fn get_naive_datetime_from_str(date: &str, format: &str) -> Result<NaiveDateTime, anyhow::Error> {
     
     NaiveDateTime::parse_from_str(date, format)
@@ -77,9 +71,7 @@ pub fn get_naive_datetime_from_str(date: &str, format: &str) -> Result<NaiveDate
 }
 
 
-/*
-    Function to change 'string' data format to 'NaiveDate' format
-*/
+#[doc = "Function to change 'string' data format to 'NaiveDate' format"]
 pub fn get_naive_date_from_str(date: &str, format: &str) -> Result<NaiveDate, anyhow::Error> {
     
     NaiveDate::parse_from_str(date, format)

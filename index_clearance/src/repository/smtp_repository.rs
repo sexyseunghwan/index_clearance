@@ -94,7 +94,7 @@ impl SmtpRepository for SmtpRepositoryPub {
         /* ASYNC TASK */
         let tasks = receiver_email_list.iter().map(|receiver| {
             let email_id = receiver.email_id();
-            self.send_message_to_receiver_html(email_id.as_str(), "[Elasticsearch] Index removed list", &html_content)
+            self.send_message_to_receiver_html(email_id.as_str(), "[Elasticsearch] Log Index removed list", &html_content)
         });
         
         let results = join_all(tasks).await;

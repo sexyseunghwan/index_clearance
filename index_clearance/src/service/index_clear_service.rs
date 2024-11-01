@@ -1,5 +1,3 @@
-use core::error;
-
 use crate::common::*;
 
 use crate::repository::es_repository::*;
@@ -158,12 +156,14 @@ impl<R: EsRepository + Sync> IndexClearService for IndexClearServicePub<R> {
             } 
         }
         
-        /* 벡터 정렬 -> 이름순으로 정렬 */
+        /* 인덱스 벡터 정렬 -> 이름순으로 정렬 */
         email_struct_list.sort_by(|a, b| a.index_name.cmp(&b.index_name));
 
         Ok(email_struct_list)
     }
 
+
+    
     #[doc = "elasticsearch 클러스터의 이름을 반환하는 함수"]
     fn get_cluster_name(&self) -> String {
         self.elastic_obj.get_cluster_name()

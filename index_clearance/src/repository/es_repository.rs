@@ -116,10 +116,8 @@ impl EsRepositoryPub {
 #[async_trait]
 impl EsRepository for EsRepositoryPub {
     
-
-    /*
-        특정 인덱스 자체를 삭제해주는 함수.
-    */
+    
+    #[doc = "특정 인덱스 자체를 삭제해주는 함수."]
     async fn delete_index(&self, index_name: &str) -> Result<(), anyhow::Error> {
 
         let response = self.execute_on_any_node(|es_client| async move {
@@ -143,9 +141,8 @@ impl EsRepository for EsRepositoryPub {
         }
     }
 
-    /*
-        특정 인덱스 패턴에 속하는 인덱스 전부를 가져와주는 함수.
-    */
+    
+    #[doc = "특정 인덱스 패턴에 속하는 인덱스 전부를 가져와주는 함수."]
     async fn get_index_belong_pattern(&self, index_pattern: &str) -> Result<Value, anyhow::Error> {
         
         let response = self.execute_on_any_node(|es_client| async move {
@@ -174,10 +171,9 @@ impl EsRepository for EsRepositoryPub {
 
     }
 
-
-    /*
-        Elasticsearch 클러스터의 이름을 가져와주는 함수.
-    */
+    
+    
+    #[doc = "Elasticsearch 클러스터의 이름을 가져와주는 함수."]
     fn get_cluster_name(&self) -> String {
         self.cluster_name().to_string()
     }

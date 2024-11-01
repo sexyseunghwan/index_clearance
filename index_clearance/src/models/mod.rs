@@ -7,3 +7,4 @@ pub mod SmtpJson;
 pub mod ReceiverEmail;
 pub mod ReceiverEmailList;
 pub mod EmailStruct;
+pub mod CronConfig;

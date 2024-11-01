@@ -21,3 +21,4 @@ rand = "0.8.5"
 regex = "1.11.0"
 lettre = { version = "0.11.10", default-features = false, features = ["smtp-transport", "tokio1", "builder", "tokio1-native-tls"] }
 chrono-tz = "0.9.0"
+cron = "0.12.1"
