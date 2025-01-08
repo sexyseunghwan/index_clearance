@@ -1,9 +1,8 @@
 use crate::common::*;
 
-use crate::models::cron_config::*;
 use crate::models::system_config::get_schedule_config_info;
 
-#[doc = "Json 파일을 읽어서 객체로 변환해주는 함수."]
+#[doc = "Json 파일을 읽어서 객체로 변환해주는 함수. - deprecated"]
 /// # Arguments
 /// * `file_path` - 읽을대상 파일이 존재하는 경로
 ///

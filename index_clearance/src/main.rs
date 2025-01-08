@@ -42,6 +42,10 @@ async fn main() {
     let mut upcoming = schedule.upcoming(chrono::Utc);
 
     loop {
+
+        info!("loop~");
+        info!("{:?}", upcoming.next());
+
         let next = match upcoming.next() {
             Some(next) => next,
             None => {
@@ -63,7 +67,7 @@ async fn main() {
                     continue;
                 }
             };
-
+            
             let sleep_until_time = Instant::now() + duration_until_next;
             sleep_until(sleep_until_time).await;
         }
