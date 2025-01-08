@@ -1,7 +1,7 @@
 use crate::common::*;
-use crate::models::ElasticJson::*;
+use crate::models::elastic_info::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ElasticConfig {
-    pub clusters: Vec<ElasticJson>,
+    pub clusters: Vec<ElasticInfo>,
 }

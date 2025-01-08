@@ -7,16 +7,17 @@ pub struct EmailStruct {
     pub index_name: String,
     pub deletion_date: String,
     pub status: bool,
-    pub html_form: String
+    pub html_form: String,
 }
 
 impl EmailStruct {
-        
-    pub fn new(index_name: &str, deletion_date_naive: NaiveDateTime, status: bool) -> Result<Self, anyhow::Error> {  
-        
-        let deletion_date = 
-            get_str_from_naivedatetime(deletion_date_naive, "%Y-%m-%dT%H:%M:%SZ")?;
-        
+    pub fn new(
+        index_name: &str,
+        deletion_date_naive: NaiveDateTime,
+        status: bool,
+    ) -> Result<Self, anyhow::Error> {
+        let deletion_date = get_str_from_naivedatetime(deletion_date_naive, "%Y-%m-%dT%H:%M:%SZ")?;
+
         let status_description = if status { "Successful" } else { "Failed" };
         let color = if status { "green" } else { "red" };
 
@@ -28,14 +29,12 @@ impl EmailStruct {
             </tr>",
             index_name, deletion_date, color, status_description
         );
-        
-        Ok(
-            Self { index_name: index_name.to_string(), 
-                    deletion_date, 
-                    status, 
-                    html_form
-                }
-        )
-    }
 
+        Ok(Self {
+            index_name: index_name.to_string(),
+            deletion_date,
+            status,
+            html_form,
+        })
+    }
 }

@@ -1,29 +1,26 @@
 use crate::common::*;
-use crate::models::ElasticConfig::*;
+use crate::models::elastic_config::*;
 use crate::util_modules::io_utils::*;
 
-
 #[doc = "Elasticsearch DB 초기화"]
-pub fn initialize_db_clients(es_info_path: &str) -> Result<Vec<EsRepositoryPub>, anyhow::Error> {
-
+pub fn initialize_db_clients() -> Result<Vec<EsRepositoryPub>, anyhow::Error> {
     let mut elastic_conn_vec: Vec<EsRepositoryPub> = Vec::new();
-    
-    let cluster_config: ElasticConfig = read_json_from_file::<ElasticConfig>(es_info_path)?;
-    
+
+    let cluster_config: ElasticConfig = read_toml_from_file::<ElasticConfig>(ELASTIC_SERVER_INFO)?;
+
     for config in &cluster_config.clusters {
-        
         let es_helper = EsRepositoryPub::new(
             &config.cluster_name,
-            config.hosts.clone(), 
-            &config.es_id.as_deref().unwrap_or(""), 
-            &config.es_pw.as_deref().unwrap_or(""))?;
-        
+            config.hosts.clone(),
+            &config.es_id.as_deref().unwrap_or(""),
+            &config.es_pw.as_deref().unwrap_or(""),
+        )?;
+
         elastic_conn_vec.push(es_helper);
     }
-    
+
     Ok(elastic_conn_vec)
 }
-
 
 #[async_trait]
 pub trait EsRepository {
@@ -33,7 +30,6 @@ pub trait EsRepository {
     fn get_cluster_name(&self) -> String;
 }
 
-
 #[derive(Debug, Getters, Clone)]
 #[getset(get = "pub")]
 pub struct EsRepositoryPub {
@@ -41,22 +37,22 @@ pub struct EsRepositoryPub {
     pub es_clients: Vec<EsClient>,
 }
 
-
 #[derive(Debug, Getters, Clone, new)]
 pub(crate) struct EsClient {
     host: String,
-    es_conn: Elasticsearch
+    es_conn: Elasticsearch,
 }
 
-
 impl EsRepositoryPub {
-    
-    pub fn new(cluster_name: &str, hosts: Vec<String>, es_id: &str, es_pw: &str) -> Result<Self, anyhow::Error> {
-
+    pub fn new(
+        cluster_name: &str,
+        hosts: Vec<String>,
+        es_id: &str,
+        es_pw: &str,
+    ) -> Result<Self, anyhow::Error> {
         let mut es_clients: Vec<EsClient> = Vec::new();
-        
+
         for url in hosts {
-            
             let parse_url = if es_id.is_empty() || es_pw.is_empty() {
                 format!("http://{}", url)
             } else {
@@ -66,18 +62,19 @@ impl EsRepositoryPub {
             let es_url = Url::parse(&parse_url)?;
             let conn_pool = SingleNodeConnectionPool::new(es_url);
             let transport = TransportBuilder::new(conn_pool)
-                .timeout(Duration::new(5,0))
+                .timeout(Duration::new(5, 0))
                 .build()?;
-            
+
             let elastic_conn = Elasticsearch::new(transport);
             let es_client = EsClient::new(url, elastic_conn);
             es_clients.push(es_client);
         }
 
-        Ok(EsRepositoryPub{cluster_name: cluster_name.to_string(), es_clients})
+        Ok(EsRepositoryPub {
+            cluster_name: cluster_name.to_string(),
+            es_clients,
+        })
     }
-    
-    
 
     #[doc = "Common logic: common node failure handling and node selection"]
     async fn execute_on_any_node<F, Fut>(&self, operation: F) -> Result<Response, anyhow::Error>
@@ -86,15 +83,15 @@ impl EsRepositoryPub {
         Fut: Future<Output = Result<Response, anyhow::Error>> + Send,
     {
         let mut last_error = None;
-    
-        /* 랜덤 시드로 생성 */ 
-        let mut rng = StdRng::from_entropy(); 
-        
-        /* 클라이언트 목록을 셔플 */ 
+
+        /* 랜덤 시드로 생성 */
+        let mut rng = StdRng::from_entropy();
+
+        /* 클라이언트 목록을 셔플 */
         let mut shuffled_clients: Vec<EsClient> = self.es_clients.clone();
-        shuffled_clients.shuffle(&mut rng); /* StdRng를 사용하여 셔플 */ 
-        
-        /* 셔플된 클라이언트들에 대해 순차적으로 operation 수행 */ 
+        shuffled_clients.shuffle(&mut rng); /* StdRng를 사용하여 셔플 */
+
+        /* 셔플된 클라이언트들에 대해 순차적으로 operation 수행 */
         for es_client in shuffled_clients {
             match operation(es_client).await {
                 Ok(response) => return Ok(response),
@@ -103,36 +100,32 @@ impl EsRepositoryPub {
                 }
             }
         }
-        
-        /* 모든 노드에서 실패했을 경우 에러 반환 */ 
+
+        /* 모든 노드에서 실패했을 경우 에러 반환 */
         Err(anyhow!(
             "All Elasticsearch nodes failed. Last error: {:?}",
             last_error
         ))
     }
-
 }
 
 #[async_trait]
 impl EsRepository for EsRepositoryPub {
-    
-    
     #[doc = "특정 인덱스 자체를 삭제해주는 함수."]
     async fn delete_index(&self, index_name: &str) -> Result<(), anyhow::Error> {
+        let response = self
+            .execute_on_any_node(|es_client| async move {
+                let response = es_client
+                    .es_conn
+                    .indices()
+                    .delete(IndicesDeleteParts::Index(&[index_name]))
+                    .send()
+                    .await?;
 
-        let response = self.execute_on_any_node(|es_client| async move {
-    
-            let response = es_client
-                .es_conn
-                .indices()
-                .delete(IndicesDeleteParts::Index(&[index_name]))
-                .send()
-                .await?;
-            
-            Ok(response)
-        })
-        .await?;
-        
+                Ok(response)
+            })
+            .await?;
+
         if response.status_code().is_success() {
             Ok(())
         } else {
@@ -141,24 +134,22 @@ impl EsRepository for EsRepositoryPub {
         }
     }
 
-    
     #[doc = "특정 인덱스 패턴에 속하는 인덱스 전부를 가져와주는 함수."]
     async fn get_index_belong_pattern(&self, index_pattern: &str) -> Result<Value, anyhow::Error> {
-        
-        let response = self.execute_on_any_node(|es_client| async move {
-    
-            let response = es_client
-                .es_conn
-                .cat()
-                .indices(CatIndicesParts::Index(&[index_pattern]))
-                .format("json")
-                .send()
-                .await?;
-            
-            Ok(response)
-        })
-        .await?;
-        
+        let response = self
+            .execute_on_any_node(|es_client| async move {
+                let response = es_client
+                    .es_conn
+                    .cat()
+                    .indices(CatIndicesParts::Index(&[index_pattern]))
+                    .format("json")
+                    .send()
+                    .await?;
+
+                Ok(response)
+            })
+            .await?;
+
         if response.status_code().is_success() {
             let response_body = response.json::<Value>().await?;
             Ok(response_body)
@@ -166,16 +157,10 @@ impl EsRepository for EsRepositoryPub {
             let error_message = format!("[Elasticsearch Error][node_delete_query()] Failed to delete document: Status Code: {}", response.status_code());
             Err(anyhow!(error_message))
         }
-
-        
-
     }
 
-    
-    
     #[doc = "Elasticsearch 클러스터의 이름을 가져와주는 함수."]
     fn get_cluster_name(&self) -> String {
         self.cluster_name().to_string()
     }
-    
 }
