@@ -6,7 +6,6 @@ use crate::util_modules::io_utils::*;
 use crate::util_modules::time_utils::*;
 
 use crate::models::cluster_index_config::*;
-use crate::models::cluster_index_info::*;
 use crate::models::email_struct::*;
 use crate::models::cluster_index_list::*;
 

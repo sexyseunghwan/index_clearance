@@ -29,7 +29,7 @@ impl<I: IndexClearService> MainHandler<I> {
             self.index_clear_service.delete_index_from_rule().await?;
 
         /* 인덱스 삭제 내역이 있다면, 메일로 post */
-        if send_email_form.len() != 0 {
+        if !send_email_form.is_empty() {
             /* smtp client 객체 생성 */
             let smtp_repo = get_smtp_repo();
             let cluster_name = self.index_clear_service.get_cluster_name();

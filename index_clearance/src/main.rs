@@ -42,10 +42,7 @@ async fn main() {
     let mut upcoming = schedule.upcoming(chrono::Utc);
 
     loop {
-
-        info!("loop~");
-        info!("{:?}", upcoming.next());
-
+        
         let next = match upcoming.next() {
             Some(next) => next,
             None => {
